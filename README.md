@@ -16,6 +16,7 @@ La práctica de IAM documenta la creación del usuario `dev-santiago`, su cambio
 | [Resultado de la práctica de IAM](./semana-1/activity-result.md) | Transcripciones de los pasos y sus resultados. |
 | [Capturas de IAM](./semana-1/evidencias/) | Evidencias de creación, cambios de permisos, pruebas y eliminación del usuario. |
 | [Guía de IAM](./semana-1/01-info.md) | Conceptos y comandos de AWS CLI para usuarios, llaves de acceso, roles y políticas. |
+| [Comandos de IAM](./semana-1/02-command.md) | Referencia de AWS CLI y comandos para probar los permisos del perfil lector. |
 | [Enunciado de la actividad de IAM](./semana-1/03-activity.md) | Pasos del ciclo de vida de un usuario IAM y preguntas de reflexión. |
 
 ## Semana 2
