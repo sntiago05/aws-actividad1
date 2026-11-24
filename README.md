@@ -15,9 +15,8 @@ La práctica de IAM documenta la creación del usuario `dev-santiago`, su cambio
 | --- | --- |
 | [Resultado de la práctica de IAM](./semana-1/activity-result.md) | Transcripciones de los pasos y sus resultados. |
 | [Capturas de IAM](./semana-1/evidencias/) | Evidencias de creación, cambios de permisos, pruebas y eliminación del usuario. |
-| [Información de referencia](./semana-1/01-info.md) | Conceptos de S3 y un ejemplo de menor privilegio con el rol `ec2-lector-s3`. |
-| [Comandos de referencia](./semana-1/02-command.md) | Guía de AWS CLI para operar con buckets y objetos S3. |
-| [Actividad de referencia](./semana-1/03-activity.md) | Enunciado sobre el ciclo de vida de un bucket S3. |
+| [Guía de IAM](./semana-1/01-info.md) | Conceptos y comandos de AWS CLI para usuarios, llaves de acceso, roles y políticas. |
+| [Enunciado de la actividad de IAM](./semana-1/03-activity.md) | Pasos del ciclo de vida de un usuario IAM y preguntas de reflexión. |
 
 ## Semana 2
 

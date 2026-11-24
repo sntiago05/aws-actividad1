@@ -1,117 +1,107 @@
-# Actividad: ciclo de vida de un bucket en S3
+# Actividad: ciclo de vida de un usuario IAM
 
 ## Objetivo
 
-Crear un bucket, subir, consultar, modificar y compartir objetos desde la AWS CLI, y protegerlo con una política de menor privilegio.
+Crear, consultar, editar, probar y eliminar un usuario IAM desde la AWS CLI, aplicando el principio de menor privilegio.
 
 ## Antes de empezar
 
-- AWS CLI v2 configurada con tu usuario administrador.
-- Corre `aws sts get-caller-identity` y `aws configure get region` para confirmar quién eres y en qué región trabajas.
+- AWS CLI v2 instalada y configurada con tu usuario administrador.
+- Corre `aws sts get-caller-identity` y confirma que respondes como tu usuario.
 - Ten abierto `info.md`: ahí están los comandos que necesitas.
-- Crea una carpeta de trabajo llamada `practica-s3` y entra en ella.
 
 ## Parte 1: Crear
 
-1. Crea un bucket llamado `practica-<tu-nombre>-<número>`, por ejemplo `practica-laura-4821`.
-2. Lista todos los buckets de la cuenta y confirma que aparece.
-3. Consulta en qué región quedó tu bucket.
+1. Crea un usuario llamado `dev-<tu-nombre>`, por ejemplo `dev-laura`.
+2. Lista todos los usuarios de la cuenta y confirma que aparece.
+3. Muestra los datos de tu usuario y anota su `Arn`.
 
-**Resultado esperado:** el bucket existe, está vacío y está en la región de tu proyecto.
+**Resultado esperado:** el usuario existe y no tiene ningún permiso.
 
-Pista: si el nombre ya existe en AWS, cambia el número. Solo se permiten minúsculas, números y guiones.
+## Parte 2: Editar
 
-## Parte 2: Subir
+4. Agrégale una etiqueta que indique su área:
 
-4. Crea tres archivos de texto: `notas.txt`, `tareas.txt` y `secreto.txt`, cada uno con una línea de contenido.
-5. Sube `notas.txt` al bucket.
-6. Sube los otros dos con un solo comando usando `sync`.
-7. Lista el contenido del bucket con tamaños legibles y el total.
+   `aws iam tag-user --user-name dev-<tu-nombre> --tags Key=area,Value=desarrollo`
 
-**Resultado esperado:** el bucket tiene tres objetos.
+5. Cámbiale el nombre a `lector-<tu-nombre>`:
 
-## Parte 3: Consultar y descargar
+   `aws iam update-user --user-name dev-<tu-nombre> --new-user-name lector-<tu-nombre>`
 
-8. Muestra el contenido de `notas.txt` en la terminal sin descargarlo.
-9. Muestra el tamaño y la fecha de `tareas.txt` sin descargarlo.
-10. Crea una carpeta `descargas` y descarga ahí `secreto.txt`.
+6. Vuelve a mostrar los datos del usuario y verifica el nombre nuevo y la etiqueta.
 
-## Parte 4: Editar
+**Resultado esperado:** el usuario conserva su etiqueta, pero su `Arn` cambió.
 
-11. Renombra `tareas.txt` a `pendientes.txt` dentro del bucket.
-12. Modifica tu `notas.txt` local agregándole una línea y vuelve a subirlo.
-13. Muestra el contenido de `notas.txt` desde el bucket y verifica el cambio.
+## Parte 3: Dar permisos
 
-**Resultado esperado:** el objeto se sobrescribe; S3 no guarda la versión anterior.
+7. Adjúntale la política `AmazonEC2ReadOnlyAccess`.
+8. Lista las políticas del usuario y confirma que aparece.
 
-## Parte 5: Compartir sin hacerlo público
+Pista: el ARN de las políticas de AWS es `arn:aws:iam::aws:policy/[<NombreDeLaPolítica>]`.
 
-14. Genera un enlace temporal de 60 segundos para `notas.txt`.
-15. Ábrelo en el navegador antes de que pase el minuto.
-16. Espera a que expire y vuelve a abrirlo.
+## Parte 4: Probar el menor privilegio
 
-**Resultado esperado:** el enlace funciona primero y luego devuelve un error de acceso. El bucket nunca dejó de ser privado.
+9. Crea una llave de acceso para tu usuario. La clave secreta solo se muestra una vez.
+10. Configura un perfil nuevo en tu CLI con esa llave:
 
-## Parte 6: Menor privilegio
+    `aws configure --profile lector`
 
-17. Crea un usuario llamado `lector-s3-<tu-nombre>`.
-18. Crea un archivo `solo-lectura.json` con esta política, usando el nombre de tu bucket:
+11. Comprueba quién eres con ese perfil:
 
-    {
-      "Version": "2012-10-17",
-      "Statement": [{
-        "Effect": "Allow",
-        "Action": ["s3:GetObject"],
-        "Resource": "arn:aws:s3:::TU-BUCKET/*"
-      }]
-    }
+    `aws sts get-caller-identity --profile lector`
 
-19. Adjúntasela al usuario como política en línea:
+12. Ejecuta una acción **permitida**:
 
-    `aws iam put-user-policy --user-name lector-s3-<tu-nombre> --policy-name leer-objetos --policy-document file://solo-lectura.json`
+    `aws ec2 describe-instances --profile lector`
 
-20. Crea una llave de acceso para el usuario y configura el perfil `lector-s3`. Escribe la región de tu proyecto cuando la pida.
-21. Con ese perfil, muestra el contenido de `notas.txt`.
-22. Con ese perfil, intenta listar el contenido del bucket.
-23. Con ese perfil, intenta borrar `secreto.txt`.
+13. Ejecuta una acción **no permitida**:
 
-**Resultado esperado:** el paso 21 funciona; los pasos 22 y 23 devuelven `AccessDenied`.
+    `aws iam list-users --profile lector`
 
-## Parte 7: Eliminar
+**Resultado esperado:** el paso 12 responde sin error y el paso 13 devuelve `AccessDenied`.
 
-Hazlo en este orden, con tu usuario administrador:
+## Parte 5: Quitar permisos
 
-24. Intenta borrar el bucket sin vaciarlo y lee el error.
-25. Borra todos los objetos del bucket.
-26. Borra el bucket.
-27. Borra la llave de acceso, la política en línea y el usuario `lector-s3-<tu-nombre>`.
-28. Elimina el bloque `[lector-s3]` de `~/.aws/credentials` y de `~/.aws/config`.
-29. Lista los buckets y los usuarios y confirma que no quedó nada de la actividad.
+14. Con tu usuario administrador, quítale la política al usuario.
+15. Repite el comando del paso 12 con el perfil `lector`.
+
+**Resultado esperado:** ahora la acción que antes funcionaba también falla.
+
+## Parte 6: Eliminar
+
+IAM no deja borrar un usuario que todavía tiene algo asociado. Hazlo en este orden:
+
+16. Lista las llaves de acceso del usuario y bórralas.
+17. Confirma que no le quedan políticas adjuntas.
+18. Borra el usuario.
+19. Lista los usuarios y confirma que ya no aparece.
+20. Elimina el bloque `[lector]` de `~/.aws/credentials` y de `~/.aws/config`.
+
+**Reto:** intenta borrar el usuario antes de borrar su llave y lee el error que aparece.
 
 ## Entregable
 
 Un archivo `evidencia.md` con:
 
-- Captura o salida de los pasos 3, 7, 13, 16, 21, 22, 23, 24 y 29.
+- Captura o salida de los pasos 3, 6, 8, 12, 13, 15 y 19.
 - La respuesta a las preguntas de reflexión.
 
 **Nunca incluyas la clave secreta de la llave de acceso en la evidencia ni la subas a GitHub.**
 
 ## Preguntas de reflexión
 
-1. ¿Por qué el nombre de tu bucket tuvo que ser distinto al de tus compañeros si cada uno tiene su propia cuenta?
-2. El usuario del paso 21 pudo leer un archivo, pero en el paso 22 no pudo ver la lista. ¿Qué acción le faltaba en la política?
-3. En la política, ¿qué significa el `/*` al final del `Resource`? ¿Qué pasaría si se quitara?
-4. ¿En qué se diferencia compartir un archivo con un enlace temporal de hacer público el bucket?
-5. Según el modelo de responsabilidad compartida, si alguien deja un bucket público con datos de clientes, ¿de quién es la responsabilidad?
+1. ¿Qué podía hacer el usuario justo después de crearlo, antes de adjuntarle una política? ¿Por qué?
+2. En el error del paso 13, ¿qué tres datos te dice el mensaje?
+3. ¿Por qué cambió el `Arn` al renombrar el usuario?
+4. ¿Por qué AWS obliga a borrar las llaves antes de borrar el usuario?
+5. ¿Qué pasaría si le hubieras dado `AdministratorAccess` en vez de solo lectura? ¿En qué caso real estaría justificado?
 
 ## Criterios de evaluación
 
 | Criterio | Cumple |
 |---|---|
-| El bucket fue creado, usado y eliminado en el orden correcto | |
-| Se evidencia el enlace temporal funcionando y luego expirado | |
-| Se evidencia una acción permitida y dos denegadas con el usuario lector | |
-| La política solo permite `s3:GetObject` sobre su propio bucket | |
+| El usuario fue creado, editado y eliminado en el orden correcto | |
+| Se evidencia una acción permitida y una denegada | |
 | La evidencia no expone ninguna clave secreta | |
-| No quedaron buckets, usuarios ni llaves de la actividad en la cuenta | |
+| No quedaron usuarios ni llaves de la actividad en la cuenta | |
+| Las preguntas están respondidas con sus propias palabras | |
